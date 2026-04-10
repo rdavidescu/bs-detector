@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     // TODO: WS-07 — wire analysis pipeline here
     sendResponse({ status: 'not_implemented' });
   }
-  return true; // Keep message channel open for async response
+  return true;
 });
 
 // eslint-disable-next-line no-console

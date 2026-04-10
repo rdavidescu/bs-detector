@@ -8,7 +8,6 @@ export default [
       ecmaVersion: 2024,
       sourceType: 'module',
       globals: {
-        // Browser globals
         chrome: 'readonly',
         document: 'readonly',
         window: 'readonly',
@@ -16,7 +15,12 @@ export default [
         console: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
-        // Vitest globals
+        globalThis: 'readonly',
+        Object: 'readonly',
+        Array: 'readonly',
+        Promise: 'readonly',
+        Error: 'readonly',
+        JSON: 'readonly',
         describe: 'readonly',
         it: 'readonly',
         expect: 'readonly',

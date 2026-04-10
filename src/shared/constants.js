@@ -7,7 +7,7 @@
 // --- Analysis Modes ---
 export const ANALYSIS_MODES = {
   QUICK: 'quick',
-  STANDARD: 'standard'    // post-MVP
+  STANDARD: 'standard'
 };
 
 // --- Content Types ---
@@ -22,7 +22,7 @@ export const CONTENT_TYPES = {
 
 // --- Content Limits ---
 export const CONTENT_LIMITS = {
-  MAX_CHARS: 12_000,       // 3K tokens × 4 chars/token
+  MAX_CHARS: 12000,
   MIN_CHARS: 100,
   TRUNCATION_MARKER: '[content truncated...]'
 };
@@ -43,7 +43,7 @@ export const SCORING = {
     { max: 80,  label: 'high',      description: 'Significant BS patterns' },
     { max: 100, label: 'very_high', description: 'Heavy BS throughout' }
   ],
-  SCALE_MAX: 10   // Each dimension scored 0–10
+  SCALE_MAX: 10
 };
 
 // --- UI States ---
@@ -71,6 +71,6 @@ export const PROVIDER_DEFAULTS = {
   MODE: ANALYSIS_MODES.QUICK,
   OPENROUTER_API_URL: 'https://openrouter.ai/api/v1/chat/completions',
   OPENROUTER_FREE_MODEL: 'meta-llama/llama-3.1-8b-instruct:free',
-  REQUEST_TIMEOUT_MS: 30_000,
+  REQUEST_TIMEOUT_MS: 30000,
   MAX_RETRIES: 1
 };
