@@ -8,7 +8,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.js'],
-      exclude: ['src/icons/**', 'src/manifest.json'],
+      exclude: [
+        'src/icons/**',
+        'src/manifest.json',
+        'src/config.example.js',
+        'src/background/service-worker.js',  // WS-07: shell only
+        'src/content/content-script.js',     // WS-02: shell, logic in extractor.js
+        'src/ui/popup.js',                   // WS-08: shell only
+        'src/shared/message-types.js'        // re-export only
+      ],
       thresholds: {
         lines: 85,
         branches: 75,

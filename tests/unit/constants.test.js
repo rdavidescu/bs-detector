@@ -2,7 +2,7 @@
  * TDD Anchor — WS-01 dummy test
  *
  * Verifies the shared constants module exists and exports expected shapes.
- * Written BEFORE implementation (per TDD: Red → Green → Refactor).
+ * Written BEFORE implementation (per TDD: Red then Green then Refactor).
  */
 import {
   ANALYSIS_MODES,
@@ -27,7 +27,7 @@ describe('Shared Constants', () => {
   });
 
   it('exports CONTENT_LIMITS with correct budget', () => {
-    expect(CONTENT_LIMITS.MAX_CHARS).toBe(12_000);
+    expect(CONTENT_LIMITS.MAX_CHARS).toBe(12000);
     expect(CONTENT_LIMITS.MIN_CHARS).toBe(100);
     expect(CONTENT_LIMITS.TRUNCATION_MARKER).toContain('truncated');
   });
@@ -39,7 +39,7 @@ describe('Shared Constants', () => {
     expect(totalWeight).toBeCloseTo(1.0, 5);
   });
 
-  it('exports SCORING bands covering 0–100 range', () => {
+  it('exports SCORING bands covering 0 to 100 range', () => {
     expect(SCORING.BANDS[0].max).toBe(20);
     expect(SCORING.BANDS[SCORING.BANDS.length - 1].max).toBe(100);
   });
