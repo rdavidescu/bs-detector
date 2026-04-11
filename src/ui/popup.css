@@ -1,50 +1,166 @@
-/* BS Detector — Popup Styles (Walking Skeleton: bare minimum) */
+/* BS Detector — Popup Styles */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  width: 320px;
+  width: 360px;
   min-height: 200px;
-  margin: 0;
-  padding: 12px;
+  max-height: 580px;
+  overflow-y: auto;
   font-family: system-ui, -apple-system, sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   color: #1a1a1a;
+  background: #fafafa;
+  padding: 16px;
 }
 
-h1 {
-  font-size: 18px;
-  margin: 0 0 8px;
-}
-
-#status {
-  color: #666;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 12px;
 }
 
+h1 { font-size: 16px; font-weight: 700; }
+h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
+
+.status {
+  font-size: 12px;
+  color: #888;
+  text-transform: capitalize;
+}
+
+.status.extracting,
+.status.analyzing { color: #d97706; }
+.status.complete { color: #16a34a; }
+.status.error { color: #dc2626; }
+
 #analyze-btn {
-  padding: 8px 16px;
+  width: 100%;
+  padding: 10px;
   background: #2563eb;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s;
 }
 
-#analyze-btn:hover {
-  background: #1d4ed8;
-}
+#analyze-btn:hover { background: #1d4ed8; }
+#analyze-btn:disabled { background: #94a3b8; cursor: not-allowed; }
 
-#results {
+.error-box {
   margin-top: 12px;
-  white-space: pre-wrap;
-  font-family: monospace;
+  padding: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
   font-size: 12px;
-  background: #f5f5f5;
-  padding: 8px;
-  border-radius: 4px;
-  display: none;
 }
 
-#results:not(:empty) {
-  display: block;
+.score-section {
+  text-align: center;
+  margin: 16px 0 12px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.score-display { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+
+.score-number {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.score-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+
+.score-band {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.score-justification {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Score colors by band */
+.band-low { color: #16a34a; }
+.band-mild { color: #84cc16; }
+.band-mixed { color: #d97706; }
+.band-high { color: #ea580c; }
+.band-very_high { color: #dc2626; }
+
+.section {
+  margin-top: 12px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.section p { font-size: 12px; color: #444; line-height: 1.5; }
+
+#components-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.component-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+.component-name { color: #555; flex: 1; }
+.component-score { font-weight: 700; width: 35px; text-align: right; }
+.component-bar {
+  width: 60px;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  margin-left: 8px;
+  overflow: hidden;
+}
+.component-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+ul { list-style: none; padding: 0; }
+ul li {
+  font-size: 12px;
+  color: #444;
+  padding: 3px 0;
+  padding-left: 14px;
+  position: relative;
+}
+ul li::before {
+  content: "\2022";
+  position: absolute;
+  left: 0;
+  color: #888;
+}
+
+#flags-list li::before { content: "\26A0"; color: #d97706; }
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #888;
 }

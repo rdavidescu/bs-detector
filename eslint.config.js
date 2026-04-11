@@ -15,6 +15,7 @@ export default [
         console: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
+        AbortController: 'readonly',
         globalThis: 'readonly',
         Object: 'readonly',
         Array: 'readonly',
