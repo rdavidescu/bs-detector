@@ -70,7 +70,7 @@ export const PROVIDER_DEFAULTS = {
   PROVIDER: 'openrouter',
   MODE: ANALYSIS_MODES.QUICK,
   OPENROUTER_API_URL: 'https://openrouter.ai/api/v1/chat/completions',
-  OPENROUTER_FREE_MODEL: 'meta-llama/llama-3.3-70b-instruct:free',
+  OPENROUTER_FREE_MODEL: 'meta-llama/llama-3.3-70b-instruct',
   REQUEST_TIMEOUT_MS: 30000,
   MAX_RETRIES: 1
 };
