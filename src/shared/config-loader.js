@@ -1,18 +1,170 @@
 /**
- * BS Detector — Config Loader
+ * BS Detector — Multi-Provider Config Loader
  *
- * Loads and validates the OpenRouter API key.
- * Walking skeleton: key stored in chrome.storage.local.
- * Future: onboarding UI will handle key entry.
+ * Loads, validates, and manages API keys for multiple AI providers.
+ * Supports OpenRouter, Google Gemini, and Grok (xAI).
+ * Keys stored in chrome.storage.local.
+ *
+ * Backward compatible: migrates old single-key `apiKey` format
+ * to the new `openrouterApiKey` + `activeProvider` format.
  */
+
+// ---------------------------------------------------------------------------
+// Provider registry
+// ---------------------------------------------------------------------------
+
+export const PROVIDERS = Object.freeze({
+  OPENROUTER: 'openrouter',
+  GEMINI: 'gemini',
+  GROK: 'grok',
+});
+
+/**
+ * Maps provider name → storage key for that provider's API key.
+ */
+const PROVIDER_KEY_MAP = {
+  [PROVIDERS.OPENROUTER]: 'openrouterApiKey',
+  [PROVIDERS.GEMINI]: 'geminiApiKey',
+  [PROVIDERS.GROK]: 'grokApiKey',
+};
+
+/**
+ * Expected key prefix per provider (used for soft validation).
+ */
+const PREFIX_MAP = {
+  [PROVIDERS.OPENROUTER]: 'sk-or-',
+  [PROVIDERS.GEMINI]: 'AIza',
+  [PROVIDERS.GROK]: 'xai-',
+};
 
 const PLACEHOLDER_PATTERNS = ['YOUR-KEY-HERE', 'your-key-here', 'PLACEHOLDER', 'xxx'];
 
+// ---------------------------------------------------------------------------
+// Validation
+// ---------------------------------------------------------------------------
+
 /**
- * Validate a config object has a usable API key.
+ * Validate an API key for a given provider.
  *
- * @param {object} config - Config object to validate
- * @returns {{ valid: boolean, errors: string[] }}
+ * @param {*} key   - The API key to validate
+ * @param {string} provider - Provider name (e.g. 'openrouter')
+ * @returns {{ valid: boolean, error: string|null }}
+ */
+export function validateApiKey(key, provider) {
+  // Must be a non-empty string
+  if (key === null || key === undefined || typeof key !== 'string') {
+    return { valid: false, error: 'API key must be a non-empty string' };
+  }
+
+  if (key.trim() === '') {
+    return { valid: false, error: 'API key cannot be empty' };
+  }
+
+  // Reject placeholder values
+  for (const pattern of PLACEHOLDER_PATTERNS) {
+    if (key.includes(pattern)) {
+      return { valid: false, error: 'API key contains a placeholder value' };
+    }
+  }
+
+  // Provider-specific prefix check (known providers only)
+  const expectedPrefix = PREFIX_MAP[provider];
+  if (expectedPrefix && !key.startsWith(expectedPrefix)) {
+    return { valid: false, error: `Key for ${provider} should start with ${expectedPrefix}` };
+  }
+
+  return { valid: true, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// Storage helpers (all async, use chrome.storage.local)
+// ---------------------------------------------------------------------------
+
+/**
+ * Get the currently active provider.
+ * Defaults to 'openrouter' when nothing is stored.
+ *
+ * @returns {Promise<string>}
+ */
+export async function getActiveProvider() {
+  const result = await chrome.storage.local.get(['activeProvider']);
+  return result.activeProvider || PROVIDERS.OPENROUTER;
+}
+
+/**
+ * Get the API key for the currently active provider.
+ *
+ * @returns {Promise<string|null>}
+ */
+export async function getActiveApiKey() {
+  const storageKeys = ['activeProvider', ...Object.values(PROVIDER_KEY_MAP)];
+  const result = await chrome.storage.local.get(storageKeys);
+
+  const provider = result.activeProvider || PROVIDERS.OPENROUTER;
+  const keyField = PROVIDER_KEY_MAP[provider];
+
+  return keyField ? (result[keyField] || null) : null;
+}
+
+/**
+ * Load the full multi-provider config from storage.
+ *
+ * @returns {Promise<{ activeProvider: string, openrouterApiKey: string|null, geminiApiKey: string|null, grokApiKey: string|null }>}
+ */
+export async function loadConfig() {
+  const storageKeys = ['activeProvider', ...Object.values(PROVIDER_KEY_MAP)];
+  const result = await chrome.storage.local.get(storageKeys);
+
+  return {
+    activeProvider: result.activeProvider || PROVIDERS.OPENROUTER,
+    openrouterApiKey: result.openrouterApiKey || null,
+    geminiApiKey: result.geminiApiKey || null,
+    grokApiKey: result.grokApiKey || null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Migration
+// ---------------------------------------------------------------------------
+
+/**
+ * Migrate the old single-key format (`apiKey`) to the new multi-provider
+ * format (`openrouterApiKey` + `activeProvider`).
+ *
+ * Safe to call multiple times — skips if no old key exists or if the new
+ * key is already populated.
+ *
+ * @returns {Promise<void>}
+ */
+export async function migrateOldConfig() {
+  const result = await chrome.storage.local.get(['apiKey', 'openrouterApiKey']);
+
+  if (!result.apiKey) {
+    // Nothing to migrate
+    return;
+  }
+
+  if (result.openrouterApiKey) {
+    // New key already exists — just clean up the old one
+    await chrome.storage.local.remove(['apiKey']);
+    return;
+  }
+
+  // Migrate: copy old key → new slot, set active provider, remove old key
+  await chrome.storage.local.set({
+    openrouterApiKey: result.apiKey,
+    activeProvider: PROVIDERS.OPENROUTER,
+  });
+  await chrome.storage.local.remove(['apiKey']);
+}
+
+// ---------------------------------------------------------------------------
+// Legacy compat — validateConfig (used by service-worker)
+// ---------------------------------------------------------------------------
+
+/**
+ * @deprecated Use validateApiKey() instead.
+ * Kept for backward compatibility with the walking-skeleton service worker.
  */
 export function validateConfig(config) {
   const errors = [];
@@ -38,7 +190,6 @@ export function validateConfig(config) {
     return { valid: false, errors };
   }
 
-  // Check for placeholder values
   for (const pattern of PLACEHOLDER_PATTERNS) {
     if (key.includes(pattern)) {
       errors.push('OPENROUTER_API_KEY contains placeholder value');
@@ -47,27 +198,4 @@ export function validateConfig(config) {
   }
 
   return { valid: true, errors: [] };
-}
-
-/**
- * Load config from chrome.storage.local.
- *
- * @returns {Promise<{ OPENROUTER_API_KEY: string }>}
- * @throws {Error} If no valid key is stored
- */
-export async function loadConfig() {
-  const result = await chrome.storage.local.get(['apiKey']);
-
-  if (!result.apiKey) {
-    throw new Error('API key not configured — add your OpenRouter key in settings');
-  }
-
-  const config = { OPENROUTER_API_KEY: result.apiKey };
-  const validation = validateConfig(config);
-
-  if (!validation.valid) {
-    throw new Error(validation.errors.join('; '));
-  }
-
-  return config;
 }

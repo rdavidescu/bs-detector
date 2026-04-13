@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BS Detector Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div id="settings-app">
+    <div class="settings-header">
+      <h1>BS Detector Settings</h1>
+      <span id="version"></span>
+    </div>
+
+    <div id="getting-started" class="getting-started" style="display:none;">
+      <p>Choose a provider and add your API key to start analyzing pages.</p>
+    </div>
+
+    <div id="providers-list">
+
+      <!-- OpenRouter -->
+      <div class="provider-card" data-provider="openrouter">
+        <div class="provider-top">
+          <input type="radio" name="active-provider" value="openrouter" id="radio-openrouter">
+          <label for="radio-openrouter">OpenRouter</label>
+          <span class="provider-status" data-status="not-configured">Not configured</span>
+        </div>
+        <div class="key-input-group">
+          <input type="password" id="key-openrouter" placeholder="sk-or-v1-..." class="key-input">
+          <button class="toggle-visibility" data-target="key-openrouter">Show</button>
+          <button class="save-key" data-provider="openrouter">Save</button>
+          <button class="delete-key" data-provider="openrouter">Delete</button>
+        </div>
+        <div class="model-selector-wrapper" data-provider="openrouter" style="display:none;">
+          <label>Model:</label>
+          <select class="model-select" data-provider="openrouter"></select>
+          <p class="model-note" data-provider="openrouter"></p>
+        </div>
+        <details class="setup-instructions">
+          <summary>How to get an OpenRouter key</summary>
+          <ol>
+            <li>Go to <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></li>
+            <li>Sign up or log in</li>
+            <li>Click <strong>Create Key</strong></li>
+            <li>Copy the key (starts with <code>sk-or-</code>) and paste it above</li>
+          </ol>
+        </details>
+      </div>
+
+      <!-- Google Gemini -->
+      <div class="provider-card" data-provider="gemini">
+        <div class="provider-top">
+          <input type="radio" name="active-provider" value="gemini" id="radio-gemini">
+          <label for="radio-gemini">Google Gemini</label>
+          <span class="provider-status" data-status="not-configured">Not configured</span>
+        </div>
+        <div class="key-input-group">
+          <input type="password" id="key-gemini" placeholder="AIza..." class="key-input">
+          <button class="toggle-visibility" data-target="key-gemini">Show</button>
+          <button class="save-key" data-provider="gemini">Save</button>
+          <button class="delete-key" data-provider="gemini">Delete</button>
+        </div>
+        <div class="model-selector-wrapper" data-provider="gemini" style="display:none;">
+          <label>Model:</label>
+          <select class="model-select" data-provider="gemini"></select>
+          <p class="model-note" data-provider="gemini"></p>
+        </div>
+        <details class="setup-instructions">
+          <summary>How to get a Gemini key</summary>
+          <ol>
+            <li>Go to <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></li>
+            <li>Sign in with your Google account</li>
+            <li>Click <strong>Create API key</strong></li>
+            <li>Copy the key (starts with <code>AIza</code>) and paste it above</li>
+          </ol>
+        </details>
+      </div>
+
+      <!-- Grok (xAI) -->
+      <div class="provider-card" data-provider="grok">
+        <div class="provider-top">
+          <input type="radio" name="active-provider" value="grok" id="radio-grok">
+          <label for="radio-grok">Grok (xAI)</label>
+          <span class="provider-status" data-status="not-configured">Not configured</span>
+        </div>
+        <div class="key-input-group">
+          <input type="password" id="key-grok" placeholder="xai-..." class="key-input">
+          <button class="toggle-visibility" data-target="key-grok">Show</button>
+          <button class="save-key" data-provider="grok">Save</button>
+          <button class="delete-key" data-provider="grok">Delete</button>
+        </div>
+        <div class="model-selector-wrapper" data-provider="grok" style="display:none;">
+          <label>Model:</label>
+          <select class="model-select" data-provider="grok"></select>
+          <p class="model-note" data-provider="grok"></p>
+        </div>
+        <details class="setup-instructions">
+          <summary>How to get a Grok key</summary>
+          <ol>
+            <li>Go to <a href="https://console.x.ai" target="_blank">console.x.ai</a></li>
+            <li>Sign up or log in</li>
+            <li>Create an API key</li>
+            <li>Copy the key (starts with <code>xai-</code>) and paste it above</li>
+          </ol>
+        </details>
+      </div>
+    </div>
+
+    <div class="privacy-footer">
+      <p>Your API keys are stored locally in your browser and are only sent to the respective AI provider during analysis.</p>
+    </div>
+  </div>
+  <script src="options.js" type="module"></script>
+</body>
+</html>

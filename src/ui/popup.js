@@ -4,6 +4,7 @@
  * Handles UI interactions: triggers analysis, displays results.
  */
 import { MESSAGE_TYPES, UI_STATES } from '../shared/constants.js';
+import { buildProviderSelector } from './popup-provider-selector.js';
 
 // DOM elements
 const statusEl = document.getElementById('status');
@@ -19,6 +20,7 @@ const claimsList = document.getElementById('claims-list');
 const flagsList = document.getElementById('flags-list');
 const confidenceBadge = document.getElementById('confidence-badge');
 const suggestedAction = document.getElementById('suggested-action');
+const modelInfo = document.getElementById('model-info');
 
 const COMPONENT_LABELS = {
   evidence_weakness: 'Evidence Weakness',
@@ -107,9 +109,29 @@ function renderResults(data) {
   confidenceBadge.textContent = 'Confidence: ' + (data.confidence || 'unknown');
   suggestedAction.textContent = data.suggestedAction || '';
 
+  // Model footer
+  if (modelInfo && data.provider) {
+    const providerLabel = data.provider.charAt(0).toUpperCase() + data.provider.slice(1);
+    const modelId = data.model || 'default';
+    // Show short model name: strip provider prefix (e.g. "meta-llama/llama-3.3-70b-instruct" → "llama-3.3-70b-instruct")
+    const shortModel = modelId.includes('/') ? modelId.split('/').pop() : modelId;
+    modelInfo.textContent = `${providerLabel} · ${shortModel}`;
+  }
+
   setStatus(UI_STATES.COMPLETE);
   analyzeBtn.disabled = false;
 }
+
+// Settings gear icon — open options page
+const settingsBtn = document.getElementById('settings-btn');
+if (settingsBtn) {
+  settingsBtn.addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
+  });
+}
+
+// Populate provider selector (shows only when 2+ providers configured)
+buildProviderSelector();
 
 // Analyze button click
 analyzeBtn.addEventListener('click', () => {

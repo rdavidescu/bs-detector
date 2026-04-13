@@ -1,100 +1,264 @@
 /**
- * WS-03 — Config Loader Unit Tests (RED phase — written before implementation)
+ * MP-01 — Config Loader Unit Tests (TDD — RED phase)
  *
- * Tests the config loading and validation logic.
- * For the walking skeleton, API key comes from a config file (no UI).
+ * Tests multi-provider config loading, validation, and migration.
+ * Backward compatible with existing OpenRouter-only setup.
  */
-import { validateConfig, loadConfig } from '../../src/shared/config-loader.js';
+import {
+  validateApiKey,
+  getActiveProvider,
+  getActiveApiKey,
+  loadConfig,
+  migrateOldConfig,
+  PROVIDERS
+} from '../../src/shared/config-loader.js';
 
-describe('Config Loader', () => {
+describe('Config Loader — Multi-Provider', () => {
 
-  describe('validateConfig()', () => {
+  describe('PROVIDERS enum', () => {
 
-    it('accepts valid config with OpenRouter API key', () => {
-      const config = { OPENROUTER_API_KEY: 'sk-or-v1-abc123def456' };
-      const result = validateConfig(config);
-      expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
+    it('exports OPENROUTER, GEMINI, and GROK provider names', () => {
+      expect(PROVIDERS.OPENROUTER).toBe('openrouter');
+      expect(PROVIDERS.GEMINI).toBe('gemini');
+      expect(PROVIDERS.GROK).toBe('grok');
+    });
+  });
+
+  describe('validateApiKey()', () => {
+
+    // OpenRouter keys
+    it('accepts valid OpenRouter key (sk-or- prefix)', () => {
+      expect(validateApiKey('sk-or-v1-abc123def456', 'openrouter')).toEqual({ valid: true, error: null });
     });
 
-    it('rejects config with missing API key', () => {
-      const config = {};
-      const result = validateConfig(config);
+    it('rejects empty string for any provider', () => {
+      const result = validateApiKey('', 'openrouter');
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('OPENROUTER_API_KEY is required');
+      expect(result.error).toContain('empty');
     });
 
-    it('rejects config with empty string API key', () => {
-      const config = { OPENROUTER_API_KEY: '' };
-      const result = validateConfig(config);
+    it('rejects null/undefined key', () => {
+      expect(validateApiKey(null, 'openrouter').valid).toBe(false);
+      expect(validateApiKey(undefined, 'gemini').valid).toBe(false);
+    });
+
+    it('rejects non-string key', () => {
+      expect(validateApiKey(12345, 'openrouter').valid).toBe(false);
+    });
+
+    it('rejects placeholder values', () => {
+      expect(validateApiKey('sk-or-v1-YOUR-KEY-HERE', 'openrouter').valid).toBe(false);
+      expect(validateApiKey('AIzaYOUR-KEY-HERE', 'gemini').valid).toBe(false);
+    });
+
+    // Gemini keys
+    it('accepts valid Gemini key (AIza prefix)', () => {
+      expect(validateApiKey('AIzaSyD_abc123def456', 'gemini')).toEqual({ valid: true, error: null });
+    });
+
+    it('warns when Gemini key does not start with AIza', () => {
+      const result = validateApiKey('not-a-gemini-key', 'gemini');
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('OPENROUTER_API_KEY cannot be empty');
+      expect(result.error).toContain('AIza');
     });
 
-    it('rejects config with placeholder API key', () => {
-      const config = { OPENROUTER_API_KEY: 'sk-or-v1-YOUR-KEY-HERE' };
-      const result = validateConfig(config);
+    // Grok keys
+    it('accepts valid Grok key (xai- prefix)', () => {
+      expect(validateApiKey('xai-abc123def456', 'grok')).toEqual({ valid: true, error: null });
+    });
+
+    it('warns when Grok key does not start with xai-', () => {
+      const result = validateApiKey('not-a-grok-key', 'grok');
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('OPENROUTER_API_KEY contains placeholder value');
+      expect(result.error).toContain('xai-');
     });
 
-    it('rejects config with non-string API key', () => {
-      const config = { OPENROUTER_API_KEY: 12345 };
-      const result = validateConfig(config);
+    // OpenRouter prefix check
+    it('warns when OpenRouter key does not start with sk-or-', () => {
+      const result = validateApiKey('not-an-openrouter-key', 'openrouter');
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('OPENROUTER_API_KEY must be a string');
+      expect(result.error).toContain('sk-or-');
     });
 
-    it('rejects null config', () => {
-      const result = validateConfig(null);
-      expect(result.valid).toBe(false);
+    // Unknown provider
+    it('accepts any non-empty key for unknown provider', () => {
+      expect(validateApiKey('some-key-123', 'unknown_provider')).toEqual({ valid: true, error: null });
+    });
+  });
+
+  describe('getActiveProvider()', () => {
+
+    beforeEach(() => {
+      vi.clearAllMocks();
     });
 
-    it('rejects undefined config', () => {
-      const result = validateConfig(undefined);
-      expect(result.valid).toBe(false);
+    it('returns stored active provider', async () => {
+      chrome.storage.local.get.mockImplementation((_keys, callback) => {
+        const result = { activeProvider: 'gemini' };
+        if (callback) callback(result);
+        return Promise.resolve(result);
+      });
+
+      const provider = await getActiveProvider();
+      expect(provider).toBe('gemini');
     });
 
-    it('accepts key with sk-or- prefix', () => {
-      const config = { OPENROUTER_API_KEY: 'sk-or-v1-realkey123' };
-      const result = validateConfig(config);
-      expect(result.valid).toBe(true);
+    it('defaults to openrouter when none set', async () => {
+      chrome.storage.local.get.mockImplementation((_keys, callback) => {
+        const result = {};
+        if (callback) callback(result);
+        return Promise.resolve(result);
+      });
+
+      const provider = await getActiveProvider();
+      expect(provider).toBe('openrouter');
+    });
+  });
+
+  describe('getActiveApiKey()', () => {
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('returns OpenRouter key when openrouter is active', async () => {
+      chrome.storage.local.get.mockImplementation((_keys, callback) => {
+        const result = { activeProvider: 'openrouter', openrouterApiKey: 'sk-or-v1-test123' };
+        if (callback) callback(result);
+        return Promise.resolve(result);
+      });
+
+      const key = await getActiveApiKey();
+      expect(key).toBe('sk-or-v1-test123');
+    });
+
+    it('returns Gemini key when gemini is active', async () => {
+      chrome.storage.local.get.mockImplementation((_keys, callback) => {
+        const result = { activeProvider: 'gemini', geminiApiKey: 'AIzaSyD_test456' };
+        if (callback) callback(result);
+        return Promise.resolve(result);
+      });
+
+      const key = await getActiveApiKey();
+      expect(key).toBe('AIzaSyD_test456');
+    });
+
+    it('returns Grok key when grok is active', async () => {
+      chrome.storage.local.get.mockImplementation((_keys, callback) => {
+        const result = { activeProvider: 'grok', grokApiKey: 'xai-test789' };
+        if (callback) callback(result);
+        return Promise.resolve(result);
+      });
+
+      const key = await getActiveApiKey();
+      expect(key).toBe('xai-test789');
+    });
+
+    it('returns null when active provider has no key', async () => {
+      chrome.storage.local.get.mockImplementation((_keys, callback) => {
+        const result = { activeProvider: 'gemini' };
+        if (callback) callback(result);
+        return Promise.resolve(result);
+      });
+
+      const key = await getActiveApiKey();
+      expect(key).toBeNull();
     });
   });
 
   describe('loadConfig()', () => {
 
     beforeEach(() => {
-      // Reset chrome storage mock
       vi.clearAllMocks();
     });
 
-    it('returns config from chrome.storage.local', async () => {
+    it('returns full config with all provider keys and active provider', async () => {
       chrome.storage.local.get.mockImplementation((_keys, callback) => {
-        if (callback) callback({ apiKey: 'sk-or-v1-stored-key-123' });
-        return Promise.resolve({ apiKey: 'sk-or-v1-stored-key-123' });
+        const result = {
+          activeProvider: 'openrouter',
+          openrouterApiKey: 'sk-or-v1-abc',
+          geminiApiKey: 'AIzaSyD_def',
+          grokApiKey: 'xai-ghi'
+        };
+        if (callback) callback(result);
+        return Promise.resolve(result);
       });
 
       const config = await loadConfig();
-      expect(config.OPENROUTER_API_KEY).toBe('sk-or-v1-stored-key-123');
+      expect(config.activeProvider).toBe('openrouter');
+      expect(config.openrouterApiKey).toBe('sk-or-v1-abc');
+      expect(config.geminiApiKey).toBe('AIzaSyD_def');
+      expect(config.grokApiKey).toBe('xai-ghi');
     });
 
-    it('throws descriptive error when no key is stored', async () => {
+    it('returns safe defaults when storage is empty', async () => {
       chrome.storage.local.get.mockImplementation((_keys, callback) => {
-        if (callback) callback({});
-        return Promise.resolve({});
+        const result = {};
+        if (callback) callback(result);
+        return Promise.resolve(result);
       });
 
-      await expect(loadConfig()).rejects.toThrow('API key not configured');
+      const config = await loadConfig();
+      expect(config.activeProvider).toBe('openrouter');
+      expect(config.openrouterApiKey).toBeNull();
+      expect(config.geminiApiKey).toBeNull();
+      expect(config.grokApiKey).toBeNull();
+    });
+  });
+
+  describe('migrateOldConfig()', () => {
+
+    beforeEach(() => {
+      vi.clearAllMocks();
     });
 
-    it('throws when stored key is invalid', async () => {
+    it('migrates old apiKey to openrouterApiKey', async () => {
       chrome.storage.local.get.mockImplementation((_keys, callback) => {
-        if (callback) callback({ apiKey: '' });
-        return Promise.resolve({ apiKey: '' });
+        const result = { apiKey: 'sk-or-v1-old-key-123' };
+        if (callback) callback(result);
+        return Promise.resolve(result);
       });
 
-      await expect(loadConfig()).rejects.toThrow();
+      await migrateOldConfig();
+
+      // Should have called set with new key format
+      expect(chrome.storage.local.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          openrouterApiKey: 'sk-or-v1-old-key-123',
+          activeProvider: 'openrouter'
+        })
+      );
+      // Should remove old key
+      expect(chrome.storage.local.remove).toHaveBeenCalledWith(['apiKey']);
+    });
+
+    it('does nothing when no old apiKey exists', async () => {
+      chrome.storage.local.get.mockImplementation((_keys, callback) => {
+        const result = {};
+        if (callback) callback(result);
+        return Promise.resolve(result);
+      });
+
+      await migrateOldConfig();
+
+      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+      expect(chrome.storage.local.remove).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite existing openrouterApiKey during migration', async () => {
+      chrome.storage.local.get.mockImplementation((_keys, callback) => {
+        const result = { apiKey: 'sk-or-v1-old', openrouterApiKey: 'sk-or-v1-already-set' };
+        if (callback) callback(result);
+        return Promise.resolve(result);
+      });
+
+      await migrateOldConfig();
+
+      // Should NOT overwrite the existing key
+      if (chrome.storage.local.set.mock.calls.length > 0) {
+        const setArgs = chrome.storage.local.set.mock.calls[0][0];
+        expect(setArgs.openrouterApiKey).not.toBe('sk-or-v1-old');
+      }
     });
   });
 });

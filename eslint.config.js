@@ -16,6 +16,8 @@ export default [
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         AbortController: 'readonly',
+        requestAnimationFrame: 'readonly',
+        Event: 'readonly',
         globalThis: 'readonly',
         Object: 'readonly',
         Array: 'readonly',

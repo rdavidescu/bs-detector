@@ -6,42 +6,40 @@
  */
 import { MESSAGE_TYPES } from '../shared/constants.js';
 import { runAnalysis } from './analysis-pipeline.js';
+import { getActiveProvider, getActiveApiKey, migrateOldConfig } from '../shared/config-loader.js';
+import { getActiveModelId } from '../ui/model-selector.js';
 
 /**
  * Seed API key from config.js into chrome.storage.local on install/startup.
  * config.js is gitignored and user-created from config.example.js.
+ * Migrates old format on every startup too.
  */
-async function seedApiKeyFromConfig() {
+async function seedAndMigrate() {
+  // Always migrate old single-key format first
+  await migrateOldConfig();
+
   try {
     const { CONFIG } = await import('../config.js');
     if (CONFIG?.OPENROUTER_API_KEY &&
         CONFIG.OPENROUTER_API_KEY !== 'sk-or-v1-YOUR-KEY-HERE') {
-      // Only seed if storage doesn't already have a key
-      const stored = await chrome.storage.local.get(['apiKey']);
-      if (!stored.apiKey) {
-        await chrome.storage.local.set({ apiKey: CONFIG.OPENROUTER_API_KEY });
+      // Only seed if storage doesn't already have the new key
+      const stored = await chrome.storage.local.get(['openrouterApiKey']);
+      if (!stored.openrouterApiKey) {
+        await chrome.storage.local.set({ openrouterApiKey: CONFIG.OPENROUTER_API_KEY });
       }
     }
   } catch {
-    // config.js doesn't exist yet — that's fine, user can set key via storage
+    // config.js doesn't exist yet — that's fine, user can set keys via Settings page
   }
 }
 
 // Seed on install
 chrome.runtime.onInstalled.addListener(() => {
-  seedApiKeyFromConfig();
+  seedAndMigrate();
 });
 
-// Also seed on startup (in case key was added after install)
-seedApiKeyFromConfig();
-
-/**
- * Get API key from chrome.storage.local.
- */
-async function getApiKey() {
-  const result = await chrome.storage.local.get(['apiKey']);
-  return result.apiKey || null;
-}
+// Also seed on startup
+seedAndMigrate();
 
 /**
  * Send a state update to the popup.
@@ -75,22 +73,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           return;
         }
 
-        // Get API key
-        const apiKey = await getApiKey();
+        // Get active provider + key from multi-provider config
+        const provider = await getActiveProvider();
+        const apiKey = await getActiveApiKey();
+
         if (!apiKey) {
           const err = {
             success: false,
-            error: 'API key not configured. Open DevTools console and run: chrome.storage.local.set({apiKey: "your-openrouter-key-here"})'
+            error: `No API key configured for ${provider}. Click the gear icon to open Settings.`
           };
           notifyPopup(MESSAGE_TYPES.ANALYSIS_RESULT, { result: err });
           sendResponse(err);
           return;
         }
 
-        // Run the full pipeline
+        // Get the user's selected model (or provider default)
+        const model = await getActiveModelId(provider);
+
+        // Run the full pipeline with the active provider
         const result = await runAnalysis({
           tabId: tab.id,
           apiKey,
+          provider,
+          model,
           onStateChange: (state) => {
             notifyPopup(MESSAGE_TYPES.ANALYSIS_STATE, { state });
           }

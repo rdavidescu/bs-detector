@@ -7,10 +7,37 @@
  * Called by the service worker when TRIGGER_ANALYSIS is received.
  */
 import { buildPrompt } from '../prompts/prompt-engine.js';
-import { callOpenRouter } from '../providers/adapters/openrouter.js';
+import { callProvider } from '../providers/adapter-factory.js';
 import { parseResponse } from '../shared/response-parser.js';
 import { calculateBSScore, getScoreBand } from '../shared/score-calculator.js';
-import { ANALYSIS_MODES, UI_STATES, MESSAGE_TYPES } from '../shared/constants.js';
+import { ANALYSIS_MODES, UI_STATES, MESSAGE_TYPES, PROVIDER_DEFAULTS } from '../shared/constants.js';
+
+/** Errors worth retrying (transient server issues). */
+const RETRYABLE_ERRORS = new Set(['provider_error', 'rate_limited', 'timeout']);
+
+/**
+ * Call provider with retry for transient errors (503, 429, timeout).
+ * Simple exponential backoff: 1s → 2s.
+ */
+async function callWithRetry(params) {
+  const maxRetries = PROVIDER_DEFAULTS.MAX_RETRIES;
+  let lastResult;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    lastResult = await callProvider(params);
+
+    if (lastResult.success || !RETRYABLE_ERRORS.has(lastResult.error)) {
+      return lastResult;
+    }
+
+    // Wait before retry (1s, 2s, ...)
+    if (attempt < maxRetries) {
+      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    }
+  }
+
+  return lastResult;
+}
 
 /**
  * Run the full analysis pipeline.
@@ -18,11 +45,13 @@ import { ANALYSIS_MODES, UI_STATES, MESSAGE_TYPES } from '../shared/constants.js
  * @param {{
  *   tabId: number,
  *   apiKey: string,
+ *   provider: string,
+ *   model?: string,
  *   onStateChange: (state: string) => void
  * }} params
  * @returns {Promise<{ success: boolean, result?: object, error?: string }>}
  */
-export async function runAnalysis({ tabId, apiKey, onStateChange }) {
+export async function runAnalysis({ tabId, apiKey, provider, model, onStateChange }) {
 
   // Step 1: Extract content from the active tab
   onStateChange(UI_STATES.EXTRACTING);
@@ -59,19 +88,22 @@ export async function runAnalysis({ tabId, apiKey, onStateChange }) {
     return { success: false, error: `Prompt build failed: ${err.message}` };
   }
 
-  // Step 3: Call OpenRouter
-  const apiResult = await callOpenRouter({
+  // Step 3: Call the active provider (with retry for transient errors)
+  const apiResult = await callWithRetry({
+    provider,
     messages: prompt.messages,
-    apiKey
+    apiKey,
+    model
   });
 
   if (!apiResult.success) {
+    const providerLabel = (provider || 'provider').charAt(0).toUpperCase() + (provider || 'provider').slice(1);
     const errorMessages = {
-      invalid_key: 'Invalid API key. Check your OpenRouter key in settings.',
-      rate_limited: 'Rate limited. Free tier allows ~50 requests/day. Try again later.',
+      invalid_key: `Invalid API key. Check your ${providerLabel} key in settings.`,
+      rate_limited: 'Rate limited. Try again later or switch provider.',
       timeout: 'Request timed out. The AI model may be busy.',
       network_error: 'Network error. Check your internet connection.',
-      provider_error: 'OpenRouter server error. Try again in a moment.'
+      provider_error: `${providerLabel} server error. Try again in a moment.`
     };
     return {
       success: false,
@@ -97,7 +129,9 @@ export async function runAnalysis({ tabId, apiKey, onStateChange }) {
     bandDescription: band.description,
     analyzedAt: new Date().toISOString(),
     pageTitle: extraction.title,
-    pageUrl: extraction.url
+    pageUrl: extraction.url,
+    provider,
+    model: model || 'default'
   };
 
   onStateChange(UI_STATES.COMPLETE);

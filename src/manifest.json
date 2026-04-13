@@ -8,8 +8,11 @@
     "storage"
   ],
   "host_permissions": [
-    "https://openrouter.ai/*"
+    "https://openrouter.ai/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.x.ai/*"
   ],
+  "options_page": "ui/options.html",
   "background": {
     "service_worker": "background/service-worker.js",
     "type": "module"

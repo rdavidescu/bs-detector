@@ -21,6 +21,31 @@ body {
   margin-bottom: 12px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.settings-btn:hover {
+  background: #f3f4f6;
+  color: #333;
+}
+
 h1 { font-size: 16px; font-weight: 700; }
 h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
 
@@ -34,6 +59,30 @@ h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
 .status.analyzing { color: #d97706; }
 .status.complete { color: #16a34a; }
 .status.error { color: #dc2626; }
+
+/* Provider selector dropdown */
+.provider-selector-wrapper {
+  margin-bottom: 8px;
+}
+
+.provider-selector {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: white;
+  color: #1a1a1a;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.provider-selector:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
 
 #analyze-btn {
   width: 100%;
@@ -163,4 +212,13 @@ ul li::before {
   justify-content: space-between;
   font-size: 11px;
   color: #888;
+}
+
+.analysis-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  font-size: 10px;
+  color: #aaa;
 }

@@ -1,14 +1,14 @@
 /**
- * BS Detector — OpenRouter API Adapter
+ * BS Detector — Grok (xAI) API Adapter
  *
- * Makes real API calls to OpenRouter's chat completions endpoint.
- * OpenAI-compatible format, JSON mode enabled.
+ * Grok uses an OpenAI-compatible API at api.x.ai.
+ * Same message format, same response format, just different endpoint.
  */
-import { PROVIDER_DEFAULTS } from '../../shared/constants.js';
 
-/**
- * Map HTTP status codes to error types.
- */
+const GROK_API_URL = 'https://api.x.ai/v1/chat/completions';
+const DEFAULT_MODEL = 'grok-3-mini';
+const DEFAULT_TIMEOUT_MS = 30000;
+
 function classifyError(status) {
   if (status === 401 || status === 403) return 'invalid_key';
   if (status === 429) return 'rate_limited';
@@ -17,7 +17,7 @@ function classifyError(status) {
 }
 
 /**
- * Call the OpenRouter chat completions API.
+ * Call the Grok chat completions API.
  *
  * @param {{
  *   messages: Array<{ role: string, content: string }>,
@@ -25,33 +25,25 @@ function classifyError(status) {
  *   model?: string,
  *   timeoutMs?: number
  * }} params
- * @returns {Promise<{
- *   success: boolean,
- *   content?: string,
- *   error?: string,
- *   status?: number,
- *   message?: string
- * }>}
+ * @returns {Promise<{ success: boolean, content?: string, error?: string, status?: number, message?: string }>}
  */
-export async function callOpenRouter(params) {
+export async function callGrok(params) {
   const {
     messages,
     apiKey,
-    model = PROVIDER_DEFAULTS.OPENROUTER_FREE_MODEL,
-    timeoutMs = PROVIDER_DEFAULTS.REQUEST_TIMEOUT_MS
+    model = DEFAULT_MODEL,
+    timeoutMs = DEFAULT_TIMEOUT_MS
   } = params;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(PROVIDER_DEFAULTS.OPENROUTER_API_URL, {
+    const response = await fetch(GROK_API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://github.com/rdavidescu/bs-detector',
-        'X-Title': 'BS Detector'
       },
       body: JSON.stringify({
         model,
@@ -77,10 +69,7 @@ export async function callOpenRouter(params) {
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
 
-    return {
-      success: true,
-      content
-    };
+    return { success: true, content };
 
   } catch (err) {
     clearTimeout(timeout);
