@@ -1,18 +1,20 @@
-/* BS Detector — Popup Styles */
+/* BS Detector — Popup Styles (UX-01 Redesign) */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  width: 360px;
-  min-height: 200px;
-  max-height: 580px;
+  width: 420px;
+  min-height: 240px;
+  max-height: 700px;
   overflow-y: auto;
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 13px;
   color: #1a1a1a;
-  background: #fafafa;
+  background: #faf9f7;
   padding: 16px;
 }
+
+/* ── Header ─────────────────────────────────────── */
 
 .header {
   display: flex;
@@ -42,8 +44,8 @@ body {
 }
 
 .settings-btn:hover {
-  background: #f3f4f6;
-  color: #333;
+  background: #f3f0eb;
+  color: #5c4033;
 }
 
 h1 { font-size: 16px; font-weight: 700; }
@@ -52,15 +54,15 @@ h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
 .status {
   font-size: 12px;
   color: #888;
-  text-transform: capitalize;
 }
 
 .status.extracting,
-.status.analyzing { color: #d97706; }
-.status.complete { color: #16a34a; }
-.status.error { color: #dc2626; }
+.status.analyzing { color: #92400e; }
+.status.complete { color: #15803d; }
+.status.error { color: #b91c1c; }
 
-/* Provider selector dropdown */
+/* ── Provider selector ──────────────────────────── */
+
 .provider-selector-wrapper {
   margin-bottom: 8px;
 }
@@ -68,9 +70,9 @@ h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
 .provider-selector {
   width: 100%;
   padding: 7px 10px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d6cfc7;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   font-family: system-ui, -apple-system, sans-serif;
   background: white;
   color: #1a1a1a;
@@ -80,25 +82,29 @@ h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
 
 .provider-selector:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  border-color: #78350f;
+  box-shadow: 0 0 0 2px rgba(120, 53, 15, 0.15);
 }
+
+/* ── Analyze button (hankey brown) ──────────────── */
 
 #analyze-btn {
   width: 100%;
   padding: 10px;
-  background: #2563eb;
+  background: #6d4c2e;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   transition: background 0.15s;
 }
 
-#analyze-btn:hover { background: #1d4ed8; }
-#analyze-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+#analyze-btn:hover { background: #5c3d22; }
+#analyze-btn:disabled { background: #a89585; cursor: not-allowed; }
+
+/* ── Error box ──────────────────────────────────── */
 
 .error-box {
   margin-top: 12px;
@@ -106,52 +112,91 @@ h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
   background: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 8px;
-  color: #dc2626;
+  color: #b91c1c;
   font-size: 12px;
 }
 
+/* ── Score section + Gauge ──────────────────────── */
+
 .score-section {
   text-align: center;
-  margin: 16px 0 12px;
-  padding: 16px;
+  margin: 16px 0 10px;
+  padding: 16px 16px 12px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-.score-display { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-
-.score-number {
-  font-size: 48px;
-  font-weight: 800;
-  line-height: 1;
+.gauge-container {
+  position: relative;
+  width: 200px;
+  height: 115px;
+  margin: 0 auto;
 }
 
-.score-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.gauge-value {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.score-number {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+  color: #1a1a1a;
+}
+
+.score-label {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
 .score-band {
-  margin-top: 6px;
-  font-size: 13px;
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.score-justification {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #555;
+  line-height: 1.4;
+}
+
+.confidence-line {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.confidence-label {
+  color: #999;
+}
+
+.confidence-value {
+  color: #1a1a1a;
   font-weight: 600;
   text-transform: capitalize;
 }
 
-.score-justification {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #666;
-  font-style: italic;
-}
-
-/* Score colors by band */
-.band-low { color: #16a34a; }
-.band-mild { color: #84cc16; }
-.band-mixed { color: #d97706; }
-.band-high { color: #ea580c; }
-.band-very_high { color: #dc2626; }
+/* ── Sections ───────────────────────────────────── */
 
 .section {
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 10px;
   background: white;
   border-radius: 8px;
@@ -159,6 +204,8 @@ h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
 }
 
 .section p { font-size: 12px; color: #444; line-height: 1.5; }
+
+/* ── Component Scores ───────────────────────────── */
 
 #components-list {
   display: flex;
@@ -179,7 +226,7 @@ h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
 .component-bar {
   width: 60px;
   height: 6px;
-  background: #e5e7eb;
+  background: #e5e2de;
   border-radius: 3px;
   margin-left: 8px;
   overflow: hidden;
@@ -189,6 +236,10 @@ h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
   border-radius: 3px;
   transition: width 0.3s;
 }
+
+/* ── Red Flags ──────────────────────────────────── */
+
+/* Red flags should be visible without scrolling (no-scroll zone) */
 
 ul { list-style: none; padding: 0; }
 ul li {
@@ -205,20 +256,33 @@ ul li::before {
   color: #888;
 }
 
-#flags-list li::before { content: "\26A0"; color: #d97706; }
-
-.meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #888;
+#flags-list li {
+  color: #92400e;
 }
 
+#flags-list li::before {
+  content: "\26A0";
+  color: #b45309;
+}
+
+/* ── Footer ─────────────────────────────────────── */
+
 .analysis-footer {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #e5e7eb;
+  margin-top: 10px;
+  padding: 8px 10px;
   text-align: center;
+  font-size: 11px;
+  color: #999;
+  border-top: 1px solid #e5e2de;
+}
+
+.suggested-action {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.model-info {
+  display: block;
   font-size: 10px;
-  color: #aaa;
+  color: #bbb;
 }

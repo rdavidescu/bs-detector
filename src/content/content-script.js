@@ -32,6 +32,7 @@ const BOILERPLATE_TAGS = ['nav', 'footer', 'header', 'aside', 'script', 'style',
 
 // Elements inside an article that are noise (related stories, share buttons, etc.)
 const NOISE_SELECTORS = [
+  // ── Generic noise ──────────────────────────────────────────────────────
   '[class*="related"]',
   '[class*="share"]',
   '[class*="social"]',
@@ -46,9 +47,39 @@ const NOISE_SELECTORS = [
   '[class*="also-read"]',
   '[class*="recommended"]',
   '[class*="trending"]',
+  '[class*="read-more"]',
+  '[class*="read-next"]',
+  '[class*="popular"]',
+  '[class*="latest-news"]',
+  '[class*="most-read"]',
+  '[class*="top-stories"]',
   '[data-testid*="share"]',
   '[role="complementary"]',
   'figure figcaption',
+
+  // ── Third-party recommendation widgets ─────────────────────────────────
+  '[class*="outbrain"]',
+  '[class*="taboola"]',
+  '[class*="recirculation"]',
+  '[class*="sponsored"]',
+  '[id*="outbrain"]',
+  '[id*="taboola"]',
+  '[data-widget*="outbrain"]',
+  '[data-widget*="taboola"]',
+
+  // ── Romanian news sites (Antena3, ProTV, Digi24, etc.) ─────────────────
+  '[class*="citeste"]',           // "citește și" = "also read"
+  '[class*="vezi-si"]',           // "vezi și" = "see also"
+  '[class*="alte-articole"]',     // "alte articole" = "other articles"
+  '[class*="articole-"]',         // article previews/lists
+  '[class*="stiri-"]',            // "știri" = "news" sidebar blocks
+  '[class*="articol-related"]',
+  '[class*="media-body"]',        // often used for article preview cards
+  '[class*="article-preview"]',
+  '[class*="article-listing"]',
+  '[class*="news-list"]',
+  '[class*="story-list"]',
+  '[class*="article-card"]',
 ];
 
 // Known article body selectors for major news sites (most specific first)
