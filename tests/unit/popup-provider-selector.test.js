@@ -152,9 +152,10 @@ describe('Popup Provider Selector', () => {
 
       const select = document.getElementById('provider-selector');
       const texts = [...select.options].map((o) => o.textContent);
-      expect(texts).toContain('OpenRouter');
-      expect(texts).toContain('Google Gemini');
-      expect(texts).toContain('Grok (xAI)');
+      // Options now show "Provider · model-id" format
+      expect(texts.some((t) => t.startsWith('OpenRouter'))).toBe(true);
+      expect(texts.some((t) => t.startsWith('Google Gemini'))).toBe(true);
+      expect(texts.some((t) => t.startsWith('Grok (xAI)'))).toBe(true);
     });
 
     it('updates activeProvider in storage when selection changes', async () => {

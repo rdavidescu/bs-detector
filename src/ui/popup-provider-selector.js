@@ -9,6 +9,7 @@
  */
 
 import { PROVIDERS, loadConfig } from '../shared/config-loader.js';
+import { getActiveModelId } from './model-selector.js';
 
 /** Friendly display names for the provider enum values. */
 const DISPLAY_NAMES = {
@@ -59,12 +60,18 @@ export async function buildProviderSelector() {
     return;
   }
 
-  // Build options
+  // Build options with model name inline
   select.innerHTML = '';
   for (const provider of configured) {
     const option = document.createElement('option');
     option.value = provider;
-    option.textContent = DISPLAY_NAMES[provider] || provider;
+
+    // Show "Provider Name · model-id" for context
+    const displayName = DISPLAY_NAMES[provider] || provider;
+    const modelId = await getActiveModelId(provider);
+    const shortModel = modelId.includes('/') ? modelId.split('/').pop() : modelId;
+    option.textContent = `${displayName} · ${shortModel}`;
+
     if (provider === config.activeProvider) {
       option.selected = true;
     }
