@@ -19,6 +19,12 @@ describe('Response Parser', () => {
     },
     claims: ['Global temps rose 1.2C', 'Based on 3000 stations', 'Consistent with IPCC'],
     red_flags: ['Limited time period discussed'],
+    claim_hazard: {
+      level: 1,
+      label: 'low',
+      category: 'disputed_facts',
+      reason: 'Some claims about temperature records are debated in fringe circles'
+    },
     confidence: 'medium',
     suggested_action: 'Read with normal caution'
   });
@@ -118,5 +124,73 @@ describe('Response Parser', () => {
     const result = parseResponse(wrapped);
     expect(result.success).toBe(true);
     expect(result.data.bsScore).toBe(22);
+  });
+
+  // --- Claim Hazard (dual-axis) ---
+
+  it('parses claim_hazard with all fields', () => {
+    const result = parseResponse(validResponse);
+    expect(result.data.claimHazard).toBeDefined();
+    expect(result.data.claimHazard.level).toBe(1);
+    expect(result.data.claimHazard.label).toBe('low');
+    expect(result.data.claimHazard.category).toBe('disputed_facts');
+    expect(result.data.claimHazard.reason).toContain('temperature');
+  });
+
+  it('defaults claim_hazard to none when missing from response', () => {
+    const noHazard = JSON.stringify({
+      summary: 'Test',
+      bs_score: { score: 30 },
+      components: {}
+    });
+    const result = parseResponse(noHazard);
+    expect(result.data.claimHazard.level).toBe(0);
+    expect(result.data.claimHazard.label).toBe('none');
+    expect(result.data.claimHazard.category).toBe('routine');
+    expect(result.data.claimHazard.reason).toBe('');
+  });
+
+  it('clamps claim_hazard level to 0-3 range', () => {
+    const highLevel = JSON.stringify({
+      summary: 'Test',
+      bs_score: { score: 50 },
+      components: {},
+      claim_hazard: { level: 7, label: 'high', category: 'conspiracy_adjacent', reason: 'Off the charts' }
+    });
+    const result = parseResponse(highLevel);
+    expect(result.data.claimHazard.level).toBe(3);
+
+    const negLevel = JSON.stringify({
+      summary: 'Test',
+      bs_score: { score: 50 },
+      components: {},
+      claim_hazard: { level: -2, label: 'none', category: 'routine', reason: '' }
+    });
+    const resultNeg = parseResponse(negLevel);
+    expect(resultNeg.data.claimHazard.level).toBe(0);
+  });
+
+  it('rejects unknown claim_hazard categories and defaults to routine', () => {
+    const unknownCat = JSON.stringify({
+      summary: 'Test',
+      bs_score: { score: 50 },
+      components: {},
+      claim_hazard: { level: 2, label: 'moderate', category: 'alien_invasion', reason: 'Not real' }
+    });
+    const result = parseResponse(unknownCat);
+    expect(result.data.claimHazard.category).toBe('routine');
+  });
+
+  it('claim_hazard is independent of bs_score', () => {
+    const lowBsHighHazard = JSON.stringify({
+      summary: 'Well-written conspiracy article',
+      bs_score: { score: 12 },
+      components: { evidence_weakness: { score: 1 } },
+      claim_hazard: { level: 3, label: 'high', category: 'conspiracy_adjacent', reason: 'Hidden actors invoked' }
+    });
+    const result = parseResponse(lowBsHighHazard);
+    expect(result.data.bsScore).toBe(12);
+    expect(result.data.claimHazard.level).toBe(3);
+    expect(result.data.claimHazard.label).toBe('high');
   });
 });

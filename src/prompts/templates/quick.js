@@ -72,6 +72,27 @@ Score these dimensions from 0 to 10 — all focused on PRESENTATION QUALITY:
    - 10 = anonymous or absent sourcing for major claims, heavy reliance on unverifiable attribution
    Note: Evaluate HOW the article uses sourcing — is attribution clear and specific, or vague and strategic? Do NOT evaluate whether the cited sources themselves are reliable — that is outside scope.
 
+SECOND AXIS — Claim Hazard Assessment:
+After scoring presentation quality, SEPARATELY assess the nature of the claims the article transmits.
+This is NOT about how the article presents them — it is about what the claims themselves ARE.
+- A well-written article about conspiracy theories has LOW presentation BS but HIGH claim hazard.
+- A sloppy article about the weather has HIGH presentation BS but NONE claim hazard.
+- Claim Hazard does NOT influence the BS Score. They are completely independent axes.
+
+Rate claim hazard level:
+  0 = none: routine claims, well-established facts, non-controversial topics
+  1 = low: some debatable or unresolved claims, within normal discourse
+  2 = moderate: disputed, polarizing, or hard-to-verify claims present
+  3 = high: extraordinary, conspiratorial, or reality-detached claims
+
+Pick the most fitting category:
+  - disputed_facts: claims that contradict established consensus or are actively contested
+  - conspiracy_adjacent: claims that invoke hidden actors, cover-ups, or unfalsifiable narratives
+  - unverifiable: claims that cannot be checked by the reader (anonymous sources, secret meetings)
+  - polarizing_framing: claims framed to divide rather than inform, even if technically accurate
+  - speculative: forward-looking claims presented with inappropriate confidence
+  - routine: nothing unusual about the claims (use for level 0)
+
 You MUST respond in valid JSON format matching this exact schema:
 
 {
@@ -90,6 +111,12 @@ You MUST respond in valid JSON format matching this exact schema:
   },
   "claims": ["claim 1", "claim 2", "claim 3"],
   "red_flags": ["flag 1", "flag 2"],
+  "claim_hazard": {
+    "level": "<0-3 integer>",
+    "label": "none | low | moderate | high",
+    "category": "disputed_facts | conspiracy_adjacent | unverifiable | polarizing_framing | speculative | routine",
+    "reason": "1-2 sentences explaining why the transmitted claims are or are not hazardous"
+  },
   "confidence": "low | medium | high",
   "suggested_action": "one short suggestion"
 }`;
@@ -103,4 +130,4 @@ Content type: {{content_type}}
 Content:
 {{page_content}}
 
-Remember: Score the PRESENTATION quality, not the topic. Return your analysis as valid JSON matching the schema in your instructions.`;
+Remember: Score the PRESENTATION quality, not the topic. Then separately assess claim hazard. Return your analysis as valid JSON matching the schema in your instructions.`;

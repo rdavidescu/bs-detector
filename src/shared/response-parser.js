@@ -14,6 +14,12 @@ const COMPONENT_KEYS = [
   'source_transparency'
 ];
 
+const HAZARD_LABELS = ['none', 'low', 'moderate', 'high'];
+const HAZARD_CATEGORIES = [
+  'disputed_facts', 'conspiracy_adjacent', 'unverifiable',
+  'polarizing_framing', 'speculative', 'routine'
+];
+
 /**
  * Clamp a number to a range.
  */
@@ -100,6 +106,13 @@ export function parseResponse(raw) {
   const bsScoreRaw = parsed.bs_score?.score ?? parsed.bsScore ?? 0;
   const bsScore = clamp(Math.round(Number(bsScoreRaw)), 0, 100);
 
+  // --- Claim Hazard (dual-axis, independent of BS score) ---
+  const hazardRaw = parsed.claim_hazard || {};
+  const hazardLevel = clamp(Math.round(Number(hazardRaw.level ?? 0)), 0, 3);
+  const hazardCategory = HAZARD_CATEGORIES.includes(hazardRaw.category)
+    ? hazardRaw.category
+    : 'routine';
+
   const data = {
     summary: parsed.summary || '',
     bsScore,
@@ -107,6 +120,12 @@ export function parseResponse(raw) {
     components: normalizeComponents(parsed.components),
     claims: Array.isArray(parsed.claims) ? parsed.claims : [],
     redFlags: Array.isArray(parsed.red_flags) ? parsed.red_flags : [],
+    claimHazard: {
+      level: hazardLevel,
+      label: HAZARD_LABELS[hazardLevel] || 'none',
+      category: hazardCategory,
+      reason: hazardRaw.reason || ''
+    },
     confidence: parsed.confidence || 'low',
     suggestedAction: parsed.suggested_action || ''
   };

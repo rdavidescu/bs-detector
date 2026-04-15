@@ -11,7 +11,9 @@ import {
   SCORING,
   UI_STATES,
   MESSAGE_TYPES,
-  PROVIDER_DEFAULTS
+  PROVIDER_DEFAULTS,
+  CLAIM_HAZARD,
+  REPORTING_BADGES
 } from '../../src/shared/constants.js';
 
 describe('Shared Constants', () => {
@@ -68,5 +70,25 @@ describe('Shared Constants', () => {
     expect(PROVIDER_DEFAULTS.PROVIDER).toBe('openrouter');
     expect(PROVIDER_DEFAULTS.OPENROUTER_API_URL).toContain('openrouter.ai');
     expect(PROVIDER_DEFAULTS.MODE).toBe('quick');
+  });
+
+  it('exports CLAIM_HAZARD with 4 levels and 6 categories', () => {
+    expect(CLAIM_HAZARD).toBeDefined();
+    expect(CLAIM_HAZARD.LEVELS.NONE).toBe(0);
+    expect(CLAIM_HAZARD.LEVELS.HIGH).toBe(3);
+    expect(CLAIM_HAZARD.LABELS).toHaveLength(4);
+    expect(CLAIM_HAZARD.LABELS[0]).toBe('none');
+    expect(CLAIM_HAZARD.LABELS[3]).toBe('high');
+    expect(CLAIM_HAZARD.CATEGORIES).toHaveLength(6);
+    expect(CLAIM_HAZARD.CATEGORIES).toContain('disputed_facts');
+    expect(CLAIM_HAZARD.CATEGORIES).toContain('routine');
+  });
+
+  it('exports REPORTING_BADGES covering 0 to 100 range', () => {
+    expect(REPORTING_BADGES).toBeDefined();
+    expect(REPORTING_BADGES[0].max).toBe(20);
+    expect(REPORTING_BADGES[0].label).toBe('careful');
+    expect(REPORTING_BADGES[REPORTING_BADGES.length - 1].max).toBe(100);
+    expect(REPORTING_BADGES[REPORTING_BADGES.length - 1].label).toBe('unreliable');
   });
 });
