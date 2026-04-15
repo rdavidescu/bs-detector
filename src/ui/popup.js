@@ -6,6 +6,7 @@
  * provider+model inline dropdown.
  */
 import { MESSAGE_TYPES, UI_STATES } from '../shared/constants.js';
+import { getReportingBadge } from '../shared/score-calculator.js';
 import { buildProviderSelector } from './popup-provider-selector.js';
 
 // ── DOM elements ──────────────────────────────────────────────────────────────
@@ -189,6 +190,44 @@ function renderResults(data) {
   // Confidence — right below justification
   if (confidenceValue) {
     confidenceValue.textContent = data.confidence || 'unknown';
+  }
+
+  // Reporting Quality Badge
+  const badgeEl = document.getElementById('reporting-badge');
+  if (badgeEl) {
+    const badge = getReportingBadge(data.bsScore);
+    badgeEl.textContent = badge;
+    badgeEl.className = `reporting-badge badge-${badge}`;
+  }
+
+  // Claim Hazard (dual-axis, independent of BS score)
+  const hazardSection = document.getElementById('claim-hazard-section');
+  if (hazardSection && data.claimHazard) {
+    const level = data.claimHazard.level || 0;
+
+    if (level === 0) {
+      hazardSection.style.display = 'none';
+    } else {
+      hazardSection.style.display = 'block';
+      hazardSection.className = `claim-hazard-section level-${level}`;
+
+      document.getElementById('claim-hazard-level').textContent =
+        data.claimHazard.label || 'none';
+
+      const categoryEl = document.getElementById('claim-hazard-category');
+      const category = (data.claimHazard.category || 'routine').replace(/_/g, ' ');
+      if (category !== 'routine') {
+        categoryEl.textContent = category;
+        categoryEl.style.display = 'inline';
+      } else {
+        categoryEl.style.display = 'none';
+      }
+
+      document.getElementById('claim-hazard-reason').textContent =
+        data.claimHazard.reason || '';
+    }
+  } else if (hazardSection) {
+    hazardSection.style.display = 'none';
   }
 
   // Component Scores

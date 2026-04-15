@@ -129,5 +129,29 @@ describe('Prompt Engine', () => {
       // Quick scan prompt should reference quick/fast analysis
       expect(result.system).toMatch(/quick|fast|concise/i);
     });
+
+    // --- Dual-axis: Claim Hazard in prompt ---
+
+    it('includes claim_hazard in JSON schema', () => {
+      const result = buildPrompt(validInput);
+      expect(result.system).toContain('claim_hazard');
+    });
+
+    it('includes dual-axis instructions for Claim Hazard assessment', () => {
+      const result = buildPrompt(validInput);
+      expect(result.system).toContain('Claim Hazard');
+      expect(result.system).toContain('SECOND AXIS');
+      expect(result.system).toContain('independent');
+    });
+
+    it('includes all claim hazard categories in prompt', () => {
+      const result = buildPrompt(validInput);
+      expect(result.system).toContain('disputed_facts');
+      expect(result.system).toContain('conspiracy_adjacent');
+      expect(result.system).toContain('unverifiable');
+      expect(result.system).toContain('polarizing_framing');
+      expect(result.system).toContain('speculative');
+      expect(result.system).toContain('routine');
+    });
   });
 });

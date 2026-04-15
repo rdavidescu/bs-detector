@@ -80,11 +80,32 @@ const NOISE_SELECTORS = [
   '[class*="news-list"]',
   '[class*="story-list"]',
   '[class*="article-card"]',
+
+  // ── Digi24-specific / generic RO news layout sections ──────────────────
+  '[class*="top-citite"]',        // "Top Citite" = "Most Read"
+  '[class*="top-stories"]',       // top stories block
+  '[class*="recomand"]',          // "Recomandări" = recommendations
+  '[class*="parteneri"]',         // "Parteneri" = partners
+  '[class*="ultimele"]',          // "Ultimele știri" = latest news
+  '[class*="editorial-picks"]',
+  '[class*="partner"]',           // partner content blocks
+  '[class*="cross-promo"]',
+  '[class*="etichete"]',          // tags/labels section
+  '[class*="tags"]',
+  '[class*="tag-list"]',
+  '[class*="breadcrumb"]',
 ];
 
 // Known article body selectors for major news sites (most specific first)
 const ARTICLE_BODY_SELECTORS = [
-  '[data-testid="article-body"]',        // Reuters, some modern sites
+  // ── Romanian news sites ──
+  '.data-app-body',                        // Digi24 article body container
+  '.article-body-text',                    // Digi24 alternative
+  '.single-article__body',                 // ProTV-style BEM
+  '.a3-article__body',                     // Antena3-style
+
+  // ── International / generic ──
+  '[data-testid="article-body"]',          // Reuters, some modern sites
   '.article-body',                         // Many news sites
   '.article__body',                        // BEM-style news sites
   '.story-body',                           // BBC-style
@@ -122,10 +143,43 @@ function stripNoise(root) {
   return root;
 }
 
+/**
+ * Strip link-dense blocks — sections where links dominate text.
+ * These are almost always navigation, "related articles," "most read," or
+ * partner cross-promo sections, NOT article body content.
+ *
+ * Heuristic: if a block-level element has more link text than plain text,
+ * it is very likely a navigation / recommendation block.
+ */
+function stripLinkHeavyBlocks(root) {
+  const candidates = root.querySelectorAll('div, section, ul, ol');
+  for (const el of candidates) {
+    // Skip very small elements (headings, single-link wrappers)
+    const totalText = (el.innerText || el.textContent || '').trim();
+    if (totalText.length < 80) continue;
+
+    const links = el.querySelectorAll('a');
+    if (links.length < 3) continue;
+
+    let linkTextLen = 0;
+    for (const a of links) {
+      linkTextLen += (a.innerText || a.textContent || '').trim().length;
+    }
+
+    const linkRatio = linkTextLen / totalText.length;
+    // If over 60% of the text lives inside links → navigation block
+    if (linkRatio > 0.6) {
+      el.remove();
+    }
+  }
+  return root;
+}
+
 function cleanText(el) {
   const clone = el.cloneNode(true);
   stripBoilerplate(clone);
   stripNoise(clone);
+  stripLinkHeavyBlocks(clone);
   return (clone.innerText || clone.textContent || '').trim();
 }
 

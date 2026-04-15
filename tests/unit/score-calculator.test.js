@@ -3,7 +3,7 @@
  *
  * Tests the weighted BS Score calculation and band classification.
  */
-import { calculateBSScore, getScoreBand } from '../../src/shared/score-calculator.js';
+import { calculateBSScore, getScoreBand, getReportingBadge } from '../../src/shared/score-calculator.js';
 
 describe('Score Calculator', () => {
 
@@ -105,6 +105,39 @@ describe('Score Calculator', () => {
       const band = getScoreBand(50);
       expect(band.description).toBeDefined();
       expect(typeof band.description).toBe('string');
+    });
+  });
+
+  describe('getReportingBadge()', () => {
+
+    it('returns careful for 0-20', () => {
+      expect(getReportingBadge(0)).toBe('careful');
+      expect(getReportingBadge(15)).toBe('careful');
+      expect(getReportingBadge(20)).toBe('careful');
+    });
+
+    it('returns decent for 21-40', () => {
+      expect(getReportingBadge(21)).toBe('decent');
+      expect(getReportingBadge(40)).toBe('decent');
+    });
+
+    it('returns mixed for 41-60', () => {
+      expect(getReportingBadge(41)).toBe('mixed');
+      expect(getReportingBadge(60)).toBe('mixed');
+    });
+
+    it('returns sloppy for 61-80', () => {
+      expect(getReportingBadge(61)).toBe('sloppy');
+      expect(getReportingBadge(80)).toBe('sloppy');
+    });
+
+    it('returns unreliable for 81-100', () => {
+      expect(getReportingBadge(81)).toBe('unreliable');
+      expect(getReportingBadge(100)).toBe('unreliable');
+    });
+
+    it('returns unreliable for scores above 100', () => {
+      expect(getReportingBadge(150)).toBe('unreliable');
     });
   });
 });

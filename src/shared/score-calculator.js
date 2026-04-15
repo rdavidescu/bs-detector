@@ -6,7 +6,7 @@
  *
  * Weights: Evidence 30%, Context 20%, Certainty 20%, Emotion 15%, Source 15%
  */
-import { SCORING } from './constants.js';
+import { SCORING, REPORTING_BADGES } from './constants.js';
 
 const DIMENSION_KEYS = Object.values(SCORING.DIMENSIONS);
 
@@ -50,4 +50,19 @@ export function getScoreBand(score) {
   // Fallback for scores > 100
   const last = SCORING.BANDS[SCORING.BANDS.length - 1];
   return { label: last.label, description: last.description };
+}
+
+/**
+ * Get a human-friendly reporting quality badge from the BS Score.
+ *
+ * @param {number} score - BS Score 0-100
+ * @returns {string} One of: 'careful', 'decent', 'mixed', 'sloppy', 'unreliable'
+ */
+export function getReportingBadge(score) {
+  for (const badge of REPORTING_BADGES) {
+    if (score <= badge.max) {
+      return badge.label;
+    }
+  }
+  return 'unreliable';
 }

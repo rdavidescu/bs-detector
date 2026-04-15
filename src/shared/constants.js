@@ -65,6 +65,29 @@ export const MESSAGE_TYPES = {
   ANALYSIS_RESULT: 'ANALYSIS_RESULT'
 };
 
+// --- Claim Hazard (dual-axis: independent of Presentation BS) ---
+export const CLAIM_HAZARD = {
+  LEVELS: { NONE: 0, LOW: 1, MODERATE: 2, HIGH: 3 },
+  LABELS: ['none', 'low', 'moderate', 'high'],
+  CATEGORIES: [
+    'disputed_facts',
+    'conspiracy_adjacent',
+    'unverifiable',
+    'polarizing_framing',
+    'speculative',
+    'routine'
+  ]
+};
+
+// --- Reporting Quality Badge (derived from Presentation BS score) ---
+export const REPORTING_BADGES = [
+  { max: 20,  label: 'careful' },
+  { max: 40,  label: 'decent' },
+  { max: 60,  label: 'mixed' },
+  { max: 80,  label: 'sloppy' },
+  { max: 100, label: 'unreliable' }
+];
+
 // --- Provider Defaults ---
 export const PROVIDER_DEFAULTS = {
   PROVIDER: 'openrouter',

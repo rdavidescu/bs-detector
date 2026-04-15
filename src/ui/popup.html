@@ -40,12 +40,25 @@
             <span class="score-label">BS Score</span>
           </div>
         </div>
-        <div id="score-band" class="score-band"></div>
+        <div class="score-band-row">
+          <span id="score-band" class="score-band"></span>
+          <span id="reporting-badge" class="reporting-badge"></span>
+        </div>
         <div id="score-justification" class="score-justification"></div>
         <div id="confidence-line" class="confidence-line">
           <span class="confidence-label">Confidence:</span>
           <span id="confidence-value" class="confidence-value">—</span>
         </div>
+      </div>
+
+      <!-- Claim Hazard (dual-axis: independent of BS score) -->
+      <div id="claim-hazard-section" class="claim-hazard-section" style="display:none;">
+        <div class="claim-hazard-header">
+          <span class="claim-hazard-label">Claim Hazard:</span>
+          <span id="claim-hazard-level" class="claim-hazard-level">none</span>
+          <span id="claim-hazard-category" class="claim-hazard-category"></span>
+        </div>
+        <p id="claim-hazard-reason" class="claim-hazard-reason"></p>
       </div>
 
       <!-- Component Scores (visual first) -->
