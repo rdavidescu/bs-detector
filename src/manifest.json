@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BS Detector",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "AI-powered content credibility analysis — surface patterns, not judgments",
   "permissions": [
     "activeTab",
